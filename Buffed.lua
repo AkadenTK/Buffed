@@ -486,7 +486,7 @@ windower.register_event('prerender', function()
                         g.timers[i]:text(s)
                     end
 
-                    g.timers[i]:pos(x + (group.size / 2 - (s:length() * 7 / 2)), y + (group.size * 2 / 3))
+                    g.timers[i]:pos(math.floor(x + (group.size / 2 - (s:length() * 7 / 2))), math.floor(y + (group.size * 2 / 3)))
 
                     if seconds > 0 and not geo_spells:contains(id) then
                         g.timers[i]:show()
@@ -608,7 +608,7 @@ local get_debuff_from_pos = function(x, y)
         local g = state.groups[group.name]
         if g then
             for i = 1, #g.statuses do
-                if g.images[i]:hover(x, y) then
+                if g.images[i] and g.images[i]:hover(x, y) then
                     return g.statuses[i], group.name, i
                 end
             end
