@@ -1,5 +1,6 @@
 return {
     job = {
+        stack_blacklist = T{},
         statuses_by_job = { -- prioritize main/sub to main
             ['war_nin'] = T{
                 'Copy Image (3)', 'Copy Image (2)', 'Copy Image', 
@@ -84,6 +85,7 @@ return {
         },
     },
     debuffs = {
+        stack_blacklist = T{},
         statuses = T{
             'doom', 'charm', 'terror', 'petrification', 'gradual petrification', 'silence', 'mute', 'amnesia', 'sleep', 'stun', 'Lullaby',
             'weakness',
@@ -96,6 +98,7 @@ return {
         },
     },
     ['power buffs'] = {
+        stack_blacklist = T{'March', 'Minuet', 'Madrigal', 'Prelude', },
         statuses = T{
             'Aftermath: Lv.1', 'Aftermath: Lv.2', 'Aftermath: Lv.3',
             'Haste', 'Attack Boost', 'Magic Atk. Boost', 'Multi Strikes', 'Flurry', 'Accuracy Boost', 'Magic Acc. Boost',
@@ -152,6 +155,7 @@ return {
         },
     },
     ['defensive buffs'] = {
+        stack_blacklist = T{'Scherzo', 'Minne', 'Paeon', 'Ballad', 'Carol', 'Mambo', 'Etude', 'Capriccio', 'Fantasia', 'Gavotte', 'Round', 'Virelai', 'Dirge', 'Sirvente', 'Aubade', 'Operetta', 'Pastoral',},
         statuses = T{
             'Reraise', 'Hymnus', 'Protect', 'Shell', 'Evasion Boost', 'Defense Boost', 'Physical Shield', 'Magic Def. Boost', 'Magic Evasion Boost',
             'Copy Image (4+)', 'Copy Image (3)', 'Copy Image (2)', 'Copy Image', 

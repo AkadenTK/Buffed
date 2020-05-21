@@ -34,6 +34,7 @@ local geo_spells = S{539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550,
 local defaults = {
     theme = 'classic',
     block = 'none', -- all: hide every status effect in vanilla client, none: don't hide anything, captured: hide only statuses captured in separate groups
+    stack_statuses = true,
     right_click_cancel = false,
     hover_highlight = { r = 255, g = 170, b = 0, a = 128},
     groups = {
@@ -115,7 +116,7 @@ function buff_offset()
 end
 
 local state = {
-    statuses = {},
+    --statuses = T{},
     groups = {},
     backgrounds = {},
     demo_titles = {},
@@ -217,65 +218,54 @@ local sort_statuses = function(group)
 
     if order == 'given' then
         fn = function(i)
-            return index_of(statuses, state.statuses[i].map.en)
+            return index_of(statuses, i.map.en)
         end
     elseif order == 'endtime' then
         fn = function(i)
-            return state.statuses[i].endtime
-        end
-    elseif order == 'applytime' then
-        fn = function(i)
-            return state.statuses[i].applytime
+            return i.endtime
         end
     elseif order == 'byid' then
         fn = function(i)
-            return i
+            return i.id
         end
     end
 
     table.sort(state.groups[group.name].statuses, function(a, b)
+        local va, vb = fn(a), fn(b)
+        if va == vb then
+            va, vb = a.endtime, b.endtime
+        end
         if reverse then
-            return fn(b) < fn(a)
+            return vb < va
         else
-            return fn(a) < fn(b)
+            return va < vb
         end
     end)
 end
 
 local filter_buffs = function(read_statuses, apply)
     local unhandled_statuses = T{}
-    local handled_statuses = T{}
     local counters = T{}
     -- parse it out.
+    for _, group in ipairs(settings.groups) do
+        if apply and state.groups[group.name] then
+            state.groups[group.name].statuses:clear()
+        end
+    end
     for i = 1, #read_statuses do
         local s = read_statuses[i]
         if s then
-            counters[s.id] = (counters[s.id] or 0) + 1
-            if not state.statuses[s.id] then
-                state.statuses[s.id] = { map = res.buffs[s.id], applytime = s.applytime, endtime = s.endtime, count = counters[s.id]}
-            elseif  s.endtime then 
-                state.statuses[s.id].endtime = s.endtime
-                state.statuses[s.id].count = counters[s.id]
-            end
-
             local filtered = false
             for _, group in ipairs(settings.groups) do
                 if not filtered then
-                    if group_match(group, state.statuses[s.id].map) then
+                    local map = res.buffs[s.id]
+                    if group_match(group, map) then
                         if apply then
                             if not state.groups[group.name] then
                                 state.groups[group.name] = { statuses = T{}, images = T{}, timers = T{}, counters = T{}, highlights = T{}, }
                             end
 
-                            if not state.groups[group.name].statuses:contains(s.id) then
-                                state.groups[group.name].statuses:append(s.id)
-                                state.groups[group.name].list_changed = true
-                            end
-
-                            handled_statuses:append(s.id)
-
-                            --ensure_icon_image:schedule(0, s.id)
-                            --print('group: '..group.name..',  captured: '..state.statuses[s.id].map.en..',  time: '..(s.endtime - os.time()))
+                            state.groups[group.name].statuses:append({ id = s.id, map = map, endtime = s.endtime})
                         end
                         filtered = true
                     end
@@ -283,9 +273,6 @@ local filter_buffs = function(read_statuses, apply)
             end 
             if not filtered then
                 unhandled_statuses:append(s)
-                if s.endtime then
-                    --print('unfiltered: '..state.statuses[s.id].map.en..',  time: '..(s.endtime - os.time()))
-                end
             end
         end
     end
@@ -293,18 +280,7 @@ local filter_buffs = function(read_statuses, apply)
         for _, group in ipairs(settings.groups) do
             local g = state.groups[group.name]
             if g then
-                for i, id in ipairs(g.statuses) do
-                    if not handled_statuses:contains(id) or not g.statuses[i] then
-                        g.statuses:remove(i)
-                        g.list_changed = true
-                    end
-                end
-
-                if g.list_changed then
-                    sort_statuses(group)
-                end
-
-                g.list_changed = false
+                sort_statuses(group)
             end
         end
     end
@@ -328,7 +304,6 @@ windower.register_event('incoming chunk', function(id, data, modified)
                 local status_i = data:unpack('H', index)
 
                 if status_i ~= 255 and status_i ~= 0 then
-                    local existing = state.statuses[status_i]
                     read_statuses[i] = { id = status_i }
                 end
             end
@@ -337,9 +312,7 @@ windower.register_event('incoming chunk', function(id, data, modified)
                 local index = 0x49 + ((i-1) * 0x04)
                 local endtime = data:unpack('I', index)
 
-                local existing = state.statuses[status_i]
                 read_statuses[i].endtime = from_server_time(endtime)
-                read_statuses[i].applytime = existing and existing.applytime or os.clock()
             end
 
             local unhandled_statuses = filter_buffs(read_statuses, true)
@@ -353,8 +326,8 @@ windower.register_event('incoming chunk', function(id, data, modified)
     elseif id == 0x037 then
         local p = packets.parse('incoming', data)
         if p['Timestamp'] and p['Time offset?'] then
-        local vana_time = p['Timestamp'] * 60 - math.floor(p['Time offset?'])
-        state.offset = math.floor(os.time() - vana_time % 0x100000000 / 60)
+            local vana_time = p['Timestamp'] * 60 - math.floor(p['Time offset?'])
+            state.offset = math.floor(os.time() - vana_time % 0x100000000 / 60)
         end
         local read_statuses = {}
         for i = 1, 32 do
@@ -362,7 +335,6 @@ windower.register_event('incoming chunk', function(id, data, modified)
             local status_i = data:unpack('b8', index)
 
             if status_i ~= 255 and status_i ~= 0 then
-                local existing = state.statuses[status_i]
                 read_statuses[i] = { id = status_i }
             end
         end
@@ -396,6 +368,28 @@ local get_time_string = function(seconds, max_seconds)
     else
         return string.format("%ih", math.max(1, seconds / 60 / 60))
     end
+end
+
+local get_stacked_statuses = function(group, statuses)
+    local counters = T{}
+    local index_map = T{}
+    local stacked = T{}
+
+    for i, s in ipairs(statuses) do
+        if s then
+            counters[s.id] = counters[s.id] and counters[s.id] + 1 or 1
+
+            if counters[s.id] > 1 and settings.stack_statuses and (not status_map[group.name].stack_blacklist or not status_map[group.name].stack_blacklist:contains(s.map.en)) then
+                stacked[index_map[s.id]].count = counters[s.id]
+                stacked[index_map[s.id]].endtime = math.min(s.endtime, stacked[index_map[s.id]].endtime)
+            else
+                stacked:append({id = s.id, endtime = s.endtime, count = 1})
+                index_map[s.id] = #stacked
+            end
+        end
+    end
+
+    return stacked
 end
 
 windower.register_event('prerender', function()
@@ -464,8 +458,9 @@ windower.register_event('prerender', function()
                 if group.direction == 'right-to-left' then
                     x = x - group.size
                 end
+                local stacked_statuses = get_stacked_statuses(group, g.statuses)
                 --print(group.name..':  #'..#g.statuses)
-                for i, id in ipairs(g.statuses) do
+                for i, s in ipairs(stacked_statuses) do
                     if not g.highlights[i] then
                         g.highlights[i] = images.new({draggable = false, visible = false})
                         g.highlights[i]:path(windower.addon_path..'background.png')
@@ -482,13 +477,12 @@ windower.register_event('prerender', function()
                         g.images[i]:hide()
                     end
 
-                    local icon_path = ensure_icon_image(id)
+                    local icon_path = ensure_icon_image(s.id)
 
                     local loaded_path = false
                     if g.images[i]:path() ~= icon_path then
                         if windower.file_exists(icon_path) then
                             g.images[i]:path(icon_path)
-                            loaded_path = icon_path
                             loaded_path = true
                         end
                     else
@@ -505,40 +499,38 @@ windower.register_event('prerender', function()
                         g.images[i]:hide()
                     end
 
-                    local seconds = state.statuses[id].endtime - os.time()
+                    local seconds = s.endtime - os.time()
 
-                    if seconds > 0 and seconds < group.flash_at and not geo_spells:contains(id) then
+                    if seconds > 0 and seconds < group.flash_at and not geo_spells:contains(s.id) then
                         g.images[i]:alpha(flash_point * 255)
                     else
                         g.images[i]:alpha(255)
                     end
 
-                    local s = get_time_string(seconds, group.max_seconds)
+                    local time_string = get_time_string(seconds, group.max_seconds)
 
                     if not g.timers[i] then
-                        g.timers[i] = texts.new(s, timer_format)
+                        g.timers[i] = texts.new(time_string, timer_format)
                     else
-                        g.timers[i]:text(s)
+                        g.timers[i]:text(time_string)
                     end
 
-                    g.timers[i]:pos(math.floor(x + (group.size / 2 - (s:length() * 7 / 2))), math.floor(y + (group.size * 2 / 3)))
+                    g.timers[i]:pos(math.floor(x + (group.size / 2 - (time_string:length() * 7 / 2))), math.floor(y + (group.size * 2 / 3)))
 
-                    if seconds > 0 and not geo_spells:contains(id) then
+                    if seconds > 0 and not geo_spells:contains(s.id) then
                         g.timers[i]:show()
                     else
                         g.timers[i]:hide()
                     end      
-
-                    local count = state.statuses[id].count
 
                     if not g.counters[i] then
                         g.counters[i] = texts.new("${buff_count||%i}", counter_format)
                     end
 
                     g.counters[i]:pos(x + (group.size - 7), y - 7)
-                    g.counters[i].buff_count = count
+                    g.counters[i].buff_count = s.count
 
-                    if count > 1 then
+                    if s.count > 1 then
                         g.counters[i]:show()
                     else
                         g.counters[i]:hide()
@@ -555,24 +547,32 @@ windower.register_event('prerender', function()
                         end
                     end
                 end
-                if #g.highlights > #g.statuses then
-                    for i = #g.statuses + 1, #g.highlights do
-                        g.highlights[i]:hide()
+                if #g.highlights > #stacked_statuses then
+                    for i = #stacked_statuses + 1, #g.highlights do
+                        if g.highlights[i] then
+                            g.highlights[i]:hide()
+                        end
                     end
                 end
-                if #g.images > #g.statuses then
-                    for i = #g.statuses + 1, #g.images do
-                        g.images[i]:hide()
+                if #g.images > #stacked_statuses then
+                    for i = #stacked_statuses + 1, #g.images do
+                        if g.images[i] then
+                            g.images[i]:hide()
+                        end
                     end
                 end
-                if #g.timers > #g.statuses then
-                    for i = #g.statuses + 1, #g.timers do
-                        g.timers[i]:hide()
+                if #g.timers > #stacked_statuses then
+                    for i = #stacked_statuses + 1, #g.timers do
+                        if g.timers[i] then
+                            g.timers[i]:hide()
+                        end
                     end
                 end
-                if #g.counters > #g.statuses then
-                    for i = #g.statuses + 1, #g.counters do
-                        g.counters[i]:hide()
+                if #g.counters > #stacked_statuses then
+                    for i = #stacked_statuses + 1, #g.counters do
+                        if g.counters[i] then
+                            g.counters[i]:hide()
+                        end
                     end
                 end
             end
@@ -587,8 +587,8 @@ windower.register_event('status change', function(new_status_id)
     end
 end)
 windower.register_event('zone change', 'job change', function()
-    state.statuses = T{}
     for _, group in pairs(state.groups) do
+        group.statuses:clear()
         for _, hgh in ipairs(group.highlights) do
             hgh:destroy()
         end
@@ -644,7 +644,7 @@ local get_debuff_from_pos = function(x, y)
         if g then
             for i = 1, #g.statuses do
                 if g.images[i] and g.images[i]:hover(x, y) then
-                    return g.statuses[i], group.name, i
+                    return g.statuses[i].id, group.name, i
                 end
             end
         end
