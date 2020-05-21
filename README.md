@@ -10,6 +10,8 @@ This addon uses Rubenator and Trv's lib for reading icons from the game client's
 
 This addon also defaults to collapsing multiple buffs of the same type into one icon, with a counter. I plan on having a setting to disable this.
 
+With an option turned on, the user can right-click a buff icon to cancel it. This option is off by default, but can be found in ./data/settings.xml under "right_click_cancel"
+
 ### Commands:
 
 | Command | Action |
