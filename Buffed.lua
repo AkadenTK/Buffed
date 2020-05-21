@@ -352,8 +352,10 @@ windower.register_event('incoming chunk', function(id, data, modified)
         end
     elseif id == 0x037 then
         local p = packets.parse('incoming', data)
+        if p['Timestamp'] and p['Time offset?'] then
         local vana_time = p['Timestamp'] * 60 - math.floor(p['Time offset?'])
         state.offset = math.floor(os.time() - vana_time % 0x100000000 / 60)
+        end
         local read_statuses = {}
         for i = 1, 32 do
             local index = 0x05 + (i-1)
