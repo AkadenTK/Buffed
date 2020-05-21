@@ -7,6 +7,7 @@ require('pack')
 require('tables')
 require('coroutine')
 local config = require('config')
+local packets = require('packets')
 local images = require('images')
 local texts = require('texts')
 local res = require('resources')
@@ -107,12 +108,19 @@ settings:save()
 
 local status_map = require('data/status_map')
 
+function buff_offset()
+    local vana_time = os.time() - 1009810800
+
+    return math.floor(os.time() - (vana_time * 60 % 0x100000000) / 60)
+end
+
 local state = {
     statuses = {},
     groups = {},
     backgrounds = {},
     demo_titles = {},
     demo = false,
+    offset = buff_offset(),
 }
 
 local ensure_icon_image = function(id)
@@ -148,11 +156,11 @@ local group_match = function(group, map)
 end
 
 local from_server_time = function(t)
-    return t / 60 + 572662306 + 1009810800
+    return t / 60 + state.offset
 end
 
 local to_server_time = function(t)
-    return (t - 1009810800 - 572662306) * 60
+    return (t - state.offset) * 60
 end
 
 local build_unhandled_buffs_packet = function(data, unhandled)
@@ -341,6 +349,9 @@ windower.register_event('incoming chunk', function(id, data, modified)
             --end
         end
     elseif id == 0x037 then
+        local p = packets.parse('incoming', data)
+        local vana_time = p['Timestamp'] * 60 - math.floor(p['Time offset?'])
+        state.offset = math.floor(os.time() - vana_time % 0x100000000 / 60)
         local read_statuses = {}
         for i = 1, 32 do
             local index = 0x05 + (i-1)
@@ -643,7 +654,9 @@ windower.register_event('mouse', function(m, x, y, delta, blocked)
         local id, group, i = get_debuff_from_pos(x, y)
         for n, g in pairs(state.groups) do
             for i = 1, #g.statuses do
-                g.highlights[i]:hide()
+                if g.highlights[i] then
+                    g.highlights[i]:hide()
+                end
             end
         end
 
