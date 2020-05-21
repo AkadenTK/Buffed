@@ -83,6 +83,26 @@ local defaults = {
     },
 }
 local settings = config.load(defaults)
+
+local windower_settings = windower.get_windower_settings()
+for _, group in ipairs(settings.groups) do
+    local w, h = group.size * group.columns + (4 * (group.columns - 1)) + 12, group.size + 4
+    local left = group.pos.x
+    if group.direction == 'right-to-left' then
+        left = left - w
+    end
+    if group.pos.x + w > windower_settings.ui_x_res then
+        if group.direction == 'right-to-left' then
+            group.pos.x = windower_settings.ui_x_res
+        else
+            group.pos.x = windower_settings.ui_x_res - w
+        end
+    end
+    if group.pos.y + h > windower_settings.ui_y_res then
+        group.pos.y = windower_settings.ui_y_res - h
+    end
+end
+
 settings:save()
 
 local status_map = require('data/status_map')
