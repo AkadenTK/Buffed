@@ -249,41 +249,43 @@ local filter_buffs = function(read_statuses, apply)
     -- parse it out.
     for i = 1, #read_statuses do
         local s = read_statuses[i]
-        counters[s.id] = (counters[s.id] or 0) + 1
-        if not state.statuses[s.id] then
-            state.statuses[s.id] = { map = res.buffs[s.id], applytime = s.applytime, endtime = s.endtime, count = counters[s.id]}
-        elseif  s.endtime then 
-            state.statuses[s.id].endtime = s.endtime
-            state.statuses[s.id].count = counters[s.id]
-        end
-
-        local filtered = false
-        for _, group in ipairs(settings.groups) do
-            if not filtered then
-                if group_match(group, state.statuses[s.id].map) then
-                    if apply then
-                        if not state.groups[group.name] then
-                            state.groups[group.name] = { statuses = T{}, images = T{}, timers = T{}, counters = T{}, highlights = T{}, }
-                        end
-
-                        if not state.groups[group.name].statuses:contains(s.id) then
-                            state.groups[group.name].statuses:append(s.id)
-                            state.groups[group.name].list_changed = true
-                        end
-
-                        handled_statuses:append(s.id)
-
-                        --ensure_icon_image:schedule(0, s.id)
-                        --print('group: '..group.name..',  captured: '..state.statuses[s.id].map.en..',  time: '..(s.endtime - os.time()))
-                    end
-                    filtered = true
-                end
+        if s then
+            counters[s.id] = (counters[s.id] or 0) + 1
+            if not state.statuses[s.id] then
+                state.statuses[s.id] = { map = res.buffs[s.id], applytime = s.applytime, endtime = s.endtime, count = counters[s.id]}
+            elseif  s.endtime then 
+                state.statuses[s.id].endtime = s.endtime
+                state.statuses[s.id].count = counters[s.id]
             end
-        end 
-        if not filtered then
-            unhandled_statuses:append(s)
-            if s.endtime then
-                --print('unfiltered: '..state.statuses[s.id].map.en..',  time: '..(s.endtime - os.time()))
+
+            local filtered = false
+            for _, group in ipairs(settings.groups) do
+                if not filtered then
+                    if group_match(group, state.statuses[s.id].map) then
+                        if apply then
+                            if not state.groups[group.name] then
+                                state.groups[group.name] = { statuses = T{}, images = T{}, timers = T{}, counters = T{}, highlights = T{}, }
+                            end
+
+                            if not state.groups[group.name].statuses:contains(s.id) then
+                                state.groups[group.name].statuses:append(s.id)
+                                state.groups[group.name].list_changed = true
+                            end
+
+                            handled_statuses:append(s.id)
+
+                            --ensure_icon_image:schedule(0, s.id)
+                            --print('group: '..group.name..',  captured: '..state.statuses[s.id].map.en..',  time: '..(s.endtime - os.time()))
+                        end
+                        filtered = true
+                    end
+                end
+            end 
+            if not filtered then
+                unhandled_statuses:append(s)
+                if s.endtime then
+                    --print('unfiltered: '..state.statuses[s.id].map.en..',  time: '..(s.endtime - os.time()))
+                end
             end
         end
     end
@@ -383,7 +385,7 @@ windower.register_event('incoming chunk', function(id, data, modified)
 end)
 
 local get_time_string = function(seconds, max_seconds)
-    if seconds < 0 then
+    if seconds < 0 or seconds > 99 * 60 * 60 then
         return ""
     elseif seconds <= max_seconds - 1 then
         return string.format("%i", math.ceil(seconds))
