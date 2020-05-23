@@ -396,9 +396,11 @@ windower.register_event('prerender', function()
     local flash_point = (math.sin(os.clock() % 1 * math.pi * 2) + 1) / 3 + 0.333
     for _, group in ipairs(settings.groups) do
         local g = state.groups[group.name]
+        local stacked_statuses 
         if state.demo or (group.show_background and g) then
-            local rows = (state.demo and 2 or math.ceil(#(g.statuses) / group.columns)) -- demo 2 rows, 3 is unlikely but 2 is possible.
-            local cols = (state.demo and group.columns or math.min(group.columns, #g.statuses))
+            stacked_statuses = get_stacked_statuses(group, g.statuses)
+            local rows = (state.demo and 2 or math.ceil(#(stacked_statuses) / group.columns)) -- demo 2 rows, 3 is unlikely but 2 is possible.
+            local cols = (state.demo and group.columns or math.min(group.columns, #stacked_statuses))
             local w, h = group.size * cols + (4 * (cols - 1)) + 12, group.size * rows + (4 * (rows - 1)) + 8
             local x, y = group.pos.x - 4, group.pos.y - 4
             if group.direction == 'right-to-left' then
@@ -458,7 +460,9 @@ windower.register_event('prerender', function()
                 if group.direction == 'right-to-left' then
                     x = x - group.size
                 end
-                local stacked_statuses = get_stacked_statuses(group, g.statuses)
+                if not stacked_statuses then 
+                    stacked_statuses = get_stacked_statuses(group, g.statuses)
+                end
                 --print(group.name..':  #'..#g.statuses)
                 for i, s in ipairs(stacked_statuses) do
                     if not g.highlights[i] then
