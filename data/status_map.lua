@@ -104,7 +104,7 @@ return {
             'Haste', 'Attack Boost', 'Magic Atk. Boost', 'Multi Strikes', 'Flurry', 'Accuracy Boost', 'Magic Acc. Boost',
             'Regain', 'Store TP',
             'March', 'Minuet', 'Madrigal', 'Prelude',
-            'Enmity Boost',
+            'Enmity Boost', 'Fast Cast',
             'STR Boost', 'DEX Boost', 'VIT Boost', 'AGI Boost', 'INT Boost', 'MND Boost', 'CHR Boost', 
             'Enfire', 'Enblizzard', 'Enaero', 'Enstone', 'Enthunder', 'Enwater', 'Enlight', 'Endark', 'Enfire II', 'Enblizzard II', 'Enaero II', 'Enstone II', 'Enthunder II', 'Enwater II', 
             -- pure damage, speed/multi/storetp, ws, accuracy, pet
