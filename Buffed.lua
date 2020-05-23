@@ -30,7 +30,7 @@ local demo_format = {
 }
 
 -- avatar favors, geomancy 
-local always_aura_statuses = S{422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 580}
+--local always_aura_statuses = S{422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 580}
 -- debuffs that restrict movement and/or turning, buffs that change behaviors of spells or enable spells in the menu MUST fall through.
 local forced_fall_through_statuses = S{0, 2, 7, 10, 11, 19, 284, 358, 359, 377, 401, 402, 409, 485, 505}
 
@@ -251,9 +251,14 @@ end
 local filter_buffs = function(read_statuses, apply)
     local unhandled_statuses = T{}
     local counters = T{}
+
+    local old_statuses = T{}
     -- parse it out.
     for _, group in ipairs(settings.groups) do
         if apply and state.groups[group.name] then
+            for i, s in iparis(state.groups[group.name].statuses) do
+                old_statuses[s.id] = s
+            end
             state.groups[group.name].statuses:clear()
         end
     end
@@ -270,7 +275,11 @@ local filter_buffs = function(read_statuses, apply)
                                 state.groups[group.name] = { statuses = T{}, images = T{}, timers = T{}, counters = T{}, highlights = T{}, }
                             end
 
-                            state.groups[group.name].statuses:append({ id = s.id, map = map, endtime = s.endtime})
+                            local new_s = { id = s.id, map = map, endtime = s.endtime}
+                            if (old_statuses[s.id] and old_statuses[s.id].aura) or (not old_statuses[s.id] and s.endtime - os.time() <= 5) then
+                                new_s.aura = true
+                            end
+                            state.groups[group.name].statuses:append(new_s)
                         end
                         --filtered = true 
                         filtered = not forced_fall_through_statuses:contains(s.id) and s.id ~= 0
@@ -518,7 +527,7 @@ windower.register_event('prerender', function()
 
                     local seconds = s.endtime - os.time()
 
-                    if seconds > 0 and seconds < group.flash_at and not always_aura_statuses:contains(s.id) then
+                    if seconds > 0 and seconds < group.flash_at and not s.aura then
                         g.images[i]:alpha(flash_point * 255)
                     else
                         g.images[i]:alpha(255)
@@ -534,7 +543,7 @@ windower.register_event('prerender', function()
 
                     g.timers[i]:pos(math.floor(x + (group.size / 2 - (time_string:length() * 7 / 2))), math.floor(y + (group.size * 2 / 3)))
 
-                    if seconds > 0 and not always_aura_statuses:contains(s.id) then
+                    if seconds > 0 and not s.aura then
                         g.timers[i]:show()
                     else
                         g.timers[i]:hide()
