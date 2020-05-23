@@ -399,7 +399,9 @@ windower.register_event('prerender', function()
         local g = state.groups[group.name]
         local stacked_statuses 
         if state.demo or (group.show_background and g) then
-            stacked_statuses = get_stacked_statuses(group, g.statuses)
+            if g then
+                stacked_statuses = get_stacked_statuses(group, g.statuses)
+            end
             local rows = (state.demo and 2 or math.ceil(#(stacked_statuses) / group.columns)) -- demo 2 rows, 3 is unlikely but 2 is possible.
             local cols = (state.demo and group.columns or math.min(group.columns, #stacked_statuses))
             local w, h = group.size * cols + (4 * (cols - 1)) + 8, group.size * rows + (4 * (rows - 1)) + 12
