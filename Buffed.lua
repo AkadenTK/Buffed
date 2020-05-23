@@ -14,17 +14,17 @@ local res = require('resources')
 local icon_extractor = require('icon_extractor')
 
 local timer_format = {
-    text = { size=9,font='Consolas',stroke={width=1,alpha=180,red=0,green=0,blue=0}},
+    text = { size=9,font='Consolas',stroke={width=1,alpha=255,red=0,green=0,blue=0}},
     flags = {bold=false,draggable=false,italic=true},
     bg = {visible=false}
 }
 local counter_format = {
-    text = { size=11,font='Consolas',stroke={width=1,alpha=180,red=0,green=0,blue=0}},
+    text = { size=11,font='Consolas',stroke={width=1,alpha=255,red=0,green=0,blue=0}},
     flags = {bold=true,draggable=false,italic=true},
     bg = {visible=false}
 }
 local demo_format = {
-    text = { size=13,font='Consolas',stroke={width=1,alpha=180,red=0,green=0,blue=0}},
+    text = { size=13,font='Consolas',stroke={width=1,alpha=255,red=0,green=0,blue=0}},
     flags = {bold=true,draggable=false,italic=true},
     bg = {visible=false}
 }
