@@ -256,7 +256,7 @@ local filter_buffs = function(read_statuses, apply)
     -- parse it out.
     for _, group in ipairs(settings.groups) do
         if apply and state.groups[group.name] then
-            for i, s in iparis(state.groups[group.name].statuses) do
+            for i, s in ipairs(state.groups[group.name].statuses) do
                 old_statuses[s.id] = s
             end
             state.groups[group.name].statuses:clear()
@@ -417,7 +417,7 @@ windower.register_event('prerender', function()
     for _, group in ipairs(settings.groups) do
         local g = state.groups[group.name]
         local stacked_statuses 
-        if state.demo or (group.show_background and g) then
+        if (state.demo or (group.show_background and g)) and not state.in_cs then
             if g then
                 stacked_statuses = get_stacked_statuses(group, g.statuses)
             end
