@@ -773,3 +773,15 @@ windower.register_event('load', function()
         packets.inject(packets.parse('incoming', m))
     end
 end)
+
+windower.register_event('unload', function()
+    local info = windower.ffxi.get_info()
+    if not info.logged_in then return end 
+
+    local p = windower.packets.last_incoming(0x63)
+    packets.inject(packets.parse('incoming', p))
+
+    local p = windower.packets.last_incoming(0x37)
+    packets.inject(packets.parse('incoming', p))
+    
+end)
