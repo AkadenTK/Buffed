@@ -332,20 +332,22 @@ local handle_incoming = function(id, data, modified)
                 end
             end
             -- read times
-            for i = 1, #read_statuses do
-                local index = 0x49 + ((i-1) * 0x04)
-                local endtime = data:unpack('I', index)
+            for i = 1, 32 do
+                if read_statuses[i] then
+                    local index = 0x49 + ((i-1) * 0x04)
+                    local endtime = data:unpack('I', index)
 
-                read_statuses[i].endtime = from_server_time(endtime)
+                    read_statuses[i].endtime = from_server_time(endtime)
+                end
             end
 
             local unhandled_statuses = filter_buffs(read_statuses, true)
 
-            --if settings.block == 'all' then
-            --    return build_unhandled_buffs_packet(data, {})
-            --elseif settings.block == 'captured' then
-            --    return build_unhandled_buffs_packet(data, unhandled_statuses)
-            --end
+            if settings.block == 'all' then
+                return build_unhandled_buffs_packet(data, {})
+            elseif settings.block == 'captured' then
+                return build_unhandled_buffs_packet(data, unhandled_statuses)
+            end
         end
     elseif id == 0x037 then
         local p = packets.parse('incoming', data)
