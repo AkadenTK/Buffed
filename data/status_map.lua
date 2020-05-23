@@ -55,9 +55,9 @@ return {
             ['blu_nin'] = T{'Azure Lore', 'Unbridled Wisdom', 'Mighty Guard', 'Blink', 'Copy Image (3)', 'Copy Image (2)', 'Copy Image', 'Attack Boost', 'Magic Atk. Boost', 'Haste', 'Diffusion', 'Unbridled Learning', 'Chain Affinity', 'Burst Affinity',}, 
             ['cor_nin'] = T{
                 'Copy Image (3)', 'Copy Image (2)', 'Copy Image', 
-                'Triple Shot', 'Double-Up Chance', 'Snake Eye', 'Bust',
+                'Triple Shot', 'Crooked Cards', 'Double-Up Chance', 'Snake Eye', 'Bust',
             },
-            ['cor'] = T{'Triple Shot', 'Double-Up Chance', 'Snake Eye', 'Bust'},
+            ['cor'] = T{'Triple Shot', 'Crooked Cards', 'Double-Up Chance', 'Snake Eye', 'Bust'},
             ['pup'] = T{'Overdrive', 'Dark Maneuver', 'Light Maneuver', 'Earth Maneuver', 'Wind Maneuver', 'Fire Maneuver', 'Ice Maneuver', 'Thunder Maneuver', 'Water Maneuver',},
             ['dnc'] = T{
                 'Trance', 'Grand Pas', 'Contradance', 'Saber Dance', 'Fan Dance', 'Haste Samba', 'Drain Samba', 'Aspir Samba', 
@@ -165,7 +165,7 @@ return {
             'Max HP Boost', 'Max MP Boost', 'Enmity Down', 
             'Negate Petrify', 'Negate Terror', 'Negate Amnesia', 'Negate Doom', 'Negate Poison', 'Negate Virus', 'Negate Curse', 'Negate Charm', 'Negate Sleep', 
             'Blaze Spikes', 'Ice Spikes', 'Shock Spikes', 'Damage Spikes', 'Dread Spikes', 'Deluge Spikes', 'Gale Spikes', 'Clod Spikes', 'Glint Spikes', 
-            "Gallant's Roll", "Ninja Roll", "Magus's Roll", "Avenger's Roll", "Evoker's Roll", "Dancer's Roll", "Monk's Roll", "Healer's Roll", "Choral Roll", "Naturalist's Roll", 
+            "Gallant's Roll", "Ninja Roll", "Magus's Roll", "Avenger's Roll", "Evoker's Roll", "Dancer's Roll", "Monk's Roll", "Healer's Roll", "Choral Roll", "Naturalist's Roll", "Runeist's Roll",
             'Carbuncle\'s Favor', 'Cait Sith\'s Favor', 'Siren\'s Favor', 'Garuda\'s Favor', 'Titan\'s Favor', 'Fenrir\'s Favor', 'Diabolos\'s Favor',
             -- non-important rolls: "Corsair's Roll", "Scholar's Roll", "Bolter's Roll", 
 
