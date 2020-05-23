@@ -199,13 +199,18 @@ local build_unhandled_pc_packet = function(data, unhandled)
 
     --print(#r..' '..#data)
 
-    if state.no_move then
-        --print('no move')
-        local p = packets.parse('incoming', r)
-        p['Movement Speed/2'] = 0
-
-        return packets.build(p)
-    end
+    --if state.no_turn then
+    --    local p = packets.parse('incoming', r)
+    --    p['_flags4'] = bit.bor(p['_flags4'], 7)
+    --    p['Movement Speed/2'] = 0
+    --    return packets.build(p)
+    --elseif state.no_move then
+    --    --print('no move')
+    --    local p = packets.parse('incoming', r)
+    --    p['Movement Speed/2'] = 0
+--
+    --    return packets.build(p)
+    --end
 
     return r
 end
@@ -283,7 +288,8 @@ local filter_buffs = function(read_statuses, apply)
 
                             state.groups[group.name].statuses:append({ id = s.id, map = map, endtime = s.endtime})
                         end
-                        filtered = true 
+                        --filtered = true 
+                        filtered = not no_move_debuffs:contains(s.id)
                     end
                 end
             end 
@@ -310,7 +316,7 @@ function has_bit(data, x)
   return data:unpack('q', math.floor(x/8)+1, x%8+1)
 end
 
-windower.register_event('incoming chunk', function(id, data, modified)
+local handle_incoming = function(id, data, modified)
     if id == 0x063 then
         local order = data:unpack('H',0x05)
         if order == 9 then
@@ -374,28 +380,30 @@ windower.register_event('incoming chunk', function(id, data, modified)
             return build_unhandled_pc_packet(modified, unhandled_statuses)
         end
     end
-end)
+end
+
+windower.register_event('incoming chunk', handle_incoming)
 
 windower.register_event('outgoing chunk', function(id, data, modified)
-    if id == 0x015 then
-        local p = packets.parse('outgoing', data)
-        if state.no_turn or (state.no_turn_x == p.X and state.no_turn_y == p.Y and state.no_turn_z == p.Z) then
-            if not state.no_turn_heading then
-                state.no_turn_heading = p['Rotation']
-                state.no_turn_x = p.X
-                state.no_turn_y = p.Y
-                state.no_turn_z = p.Z
-            end
-            p['Rotation'] = state.no_turn_heading
-
-            return packets.build(p)
-        else
-            state.no_turn_heading = nil
-            state.no_turn_x = nil
-            state.no_turn_y = nil
-            state.no_turn_z = nil
-        end
-    end
+    --if id == 0x015 then
+    --    local p = packets.parse('outgoing', data)
+    --    if state.no_turn or (state.no_turn_x == p.X and state.no_turn_y == p.Y and state.no_turn_z == p.Z) then
+    --        if not state.no_turn_heading then
+    --            state.no_turn_heading = p['Rotation']
+    --            state.no_turn_x = p.X
+    --            state.no_turn_y = p.Y
+    --            state.no_turn_z = p.Z
+    --        end
+    --        p['Rotation'] = state.no_turn_heading
+--
+    --        return packets.build(p)
+    --    else
+    --        state.no_turn_heading = nil
+    --        state.no_turn_x = nil
+    --        state.no_turn_y = nil
+    --        state.no_turn_z = nil
+    --    end
+    --end
 end)
 
 local get_time_string = function(seconds, max_seconds)
@@ -748,4 +756,20 @@ windower.register_event('mouse', function(m, x, y, delta, blocked)
         end
         state.dragged = nil
     end 
+end)
+
+windower.register_event('load', function()
+    local info = windower.ffxi.get_info()
+    if not info.logged_in then return end 
+
+    local p = windower.packets.last_incoming(0x63)
+    local m = handle_incoming(0x63, p, p)
+    if m then
+        packets.inject(packets.parse('incoming', m))
+    end
+    local p = windower.packets.last_incoming(0x37)
+    local m = handle_incoming(0x37, p, p)
+    if m then
+        packets.inject(packets.parse('incoming', m))
+    end
 end)
