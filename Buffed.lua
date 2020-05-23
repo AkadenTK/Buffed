@@ -298,7 +298,8 @@ function has_bit(data, x)
   return data:unpack('q', math.floor(x/8)+1, x%8+1)
 end
 
-local handle_incoming = function(id, data, modified)
+local handle_incoming = function(id, data, modified, injected)
+    if injected then return end
     if id == 0x063 then
         local order = data:unpack('H',0x05)
         if order == 9 then
@@ -724,13 +725,13 @@ windower.register_event('load', function()
     local info = windower.ffxi.get_info()
     if not info.logged_in then return end 
 
-    local p = windower.packets.last_incoming(0x63)
-    local m = handle_incoming(0x63, p, p)
+    local p = windower.packets.last_incoming(0x37)
+    local m = handle_incoming(0x37, p, p)
     if m then
         packets.inject(packets.parse('incoming', m))
     end
-    local p = windower.packets.last_incoming(0x37)
-    local m = handle_incoming(0x37, p, p)
+    local p = windower.packets.last_incoming(0x63)
+    local m = handle_incoming(0x63, p, p)
     if m then
         packets.inject(packets.parse('incoming', m))
     end
