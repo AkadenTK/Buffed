@@ -30,6 +30,7 @@ local demo_format = {
 }
 
 local geo_spells = S{539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 580}
+local no_move_debuffs = S{2, 7, 10, 11, 19, }
 
 local defaults = {
     theme = 'classic',
@@ -267,7 +268,7 @@ local filter_buffs = function(read_statuses, apply)
 
                             state.groups[group.name].statuses:append({ id = s.id, map = map, endtime = s.endtime})
                         end
-                        filtered = true
+                        filtered = not no_move_debuffs:contains(s.id)
                     end
                 end
             end 
@@ -401,7 +402,7 @@ windower.register_event('prerender', function()
             stacked_statuses = get_stacked_statuses(group, g.statuses)
             local rows = (state.demo and 2 or math.ceil(#(stacked_statuses) / group.columns)) -- demo 2 rows, 3 is unlikely but 2 is possible.
             local cols = (state.demo and group.columns or math.min(group.columns, #stacked_statuses))
-            local w, h = group.size * cols + (4 * (cols - 1)) + 12, group.size * rows + (4 * (rows - 1)) + 8
+            local w, h = group.size * cols + (4 * (cols - 1)) + 8, group.size * rows + (4 * (rows - 1)) + 12
             local x, y = group.pos.x - 4, group.pos.y - 4
             if group.direction == 'right-to-left' then
                 x = x - w
