@@ -289,7 +289,7 @@ local filter_buffs = function(read_statuses, apply)
                             state.groups[group.name].statuses:append({ id = s.id, map = map, endtime = s.endtime})
                         end
                         --filtered = true 
-                        filtered = not no_move_debuffs:contains(s.id)
+                        filtered = not no_move_debuffs:contains(s.id) and s.id ~= 0
                     end
                 end
             end 
@@ -327,7 +327,7 @@ local handle_incoming = function(id, data, modified)
                 local index = 0x09 + ((i-1) * 0x02)
                 local status_i = data:unpack('H', index)
 
-                if status_i ~= 255 and status_i ~= 0 then
+                if status_i ~= 255 then
                     read_statuses[i] = { id = status_i }
                 end
             end
