@@ -30,7 +30,8 @@ local demo_format = {
 }
 
 local geo_spells = S{539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 580}
-local no_move_debuffs = S{2, 7, 10, 11, 19, }
+local no_move_debuffs = S{2, 7, 10, 11, 19, 284, }
+local no_turn_debuffs = S{2, 7, 10, 19, }
 
 local defaults = {
     theme = 'classic',
@@ -198,8 +199,18 @@ local build_unhandled_pc_packet = function(data, unhandled)
 
     --print(#r..' '..#data)
 
+    if state.no_move then
+        --print('no move')
+        local p = packets.parse('incoming', r)
+        p['Movement Speed/2'] = 0
+
+        return packets.build(p)
+    end
+
     return r
 end
+
+
 
 local index_of = function(haystack, needle)
     for i, v in ipairs(haystack) do
@@ -253,9 +264,13 @@ local filter_buffs = function(read_statuses, apply)
             state.groups[group.name].statuses:clear()
         end
     end
+    local has_no_move_debuff = false
+    local has_no_turn_debuff = false
     for i = 1, #read_statuses do
         local s = read_statuses[i]
         if s then
+            has_no_move_debuff = has_no_move_debuff or no_move_debuffs:contains(s.id)
+            has_no_turn_debuff = has_no_turn_debuff or no_turn_debuffs:contains(s.id)
             local filtered = false
             for _, group in ipairs(settings.groups) do
                 if not filtered then
@@ -268,7 +283,7 @@ local filter_buffs = function(read_statuses, apply)
 
                             state.groups[group.name].statuses:append({ id = s.id, map = map, endtime = s.endtime})
                         end
-                        filtered = not no_move_debuffs:contains(s.id)
+                        filtered = true 
                     end
                 end
             end 
@@ -277,6 +292,8 @@ local filter_buffs = function(read_statuses, apply)
             end
         end
     end
+    state.no_turn = has_no_turn_debuff
+    state.no_move = has_no_move_debuff
     if apply then
         for _, group in ipairs(settings.groups) do
             local g = state.groups[group.name]
@@ -355,6 +372,28 @@ windower.register_event('incoming chunk', function(id, data, modified)
             return build_unhandled_pc_packet(modified, {})
         elseif settings.block == 'captured' then
             return build_unhandled_pc_packet(modified, unhandled_statuses)
+        end
+    end
+end)
+
+windower.register_event('outgoing chunk', function(id, data, modified)
+    if id == 0x015 then
+        local p = packets.parse('outgoing', data)
+        if state.no_turn or (state.no_turn_x == p.X and state.no_turn_y == p.Y and state.no_turn_z == p.Z) then
+            if not state.no_turn_heading then
+                state.no_turn_heading = p['Rotation']
+                state.no_turn_x = p.X
+                state.no_turn_y = p.Y
+                state.no_turn_z = p.Z
+            end
+            p['Rotation'] = state.no_turn_heading
+
+            return packets.build(p)
+        else
+            state.no_turn_heading = nil
+            state.no_turn_x = nil
+            state.no_turn_y = nil
+            state.no_turn_z = nil
         end
     end
 end)
