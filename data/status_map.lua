@@ -174,7 +174,7 @@ return {
             --mnk
             'Inner Strength', 'Dodge', 'Perfect Counter', 'Counterstance', 
             --whm
-            'Assylum', 'Sacrosanctity', 'Divine Caress', 'Divine Seal',
+            'Asylum', 'Sacrosanctity', 'Divine Caress', 'Divine Seal',
             --blm
             'Subtle Sorcery', 'Mana Wall', 
             --thf
