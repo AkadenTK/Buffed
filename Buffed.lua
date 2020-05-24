@@ -190,7 +190,7 @@ local build_unhandled_pc_packet = function(data, unhandled)
     r = r..data:sub(0x24, 0x4C)
 
     for i = 1, 29, 4 do
-        r = r..'b2b2b2b2':pack(unhandled[i] and math.floor(unhandled[i].id / 256) or 0, 
+        r = r..'b2b2b2b2':pack(unhandled[i]   and math.floor(unhandled[i].id / 256)   or 0, 
                                unhandled[i+1] and math.floor(unhandled[i+1].id / 256) or 0,
                                unhandled[i+2] and math.floor(unhandled[i+2].id / 256) or 0,
                                unhandled[i+3] and math.floor(unhandled[i+3].id / 256) or 0)
@@ -352,7 +352,7 @@ local handle_incoming = function(id, data, modified, injected)
             local index = 0x05 + (i-1)
             local status_i = data:unpack('b8', index)
 
-            if status_i ~= 255 and status_i ~= 0 then
+            if status_i ~= 255 then
                 read_statuses[i] = { id = status_i }
             end
         end
