@@ -1,3 +1,4 @@
+-- icon_extractor v1.0.1
 -- Written by Rubenator of Leviathan
 -- Base Code graciously provided by Trv of Windower discord
 local icon_extractor = {}
@@ -110,7 +111,7 @@ function open_dat(dat_stats)
         icon_file = dat_stats.file
     else
         if not game_path then
-            error("ffxi_path must be set before using this library")
+            error("ffxi_path must be set before using icon_extractor library")
         end
         filename = game_path .. '/ROM/' .. tostring(dat_stats.dat_path) .. ".DAT"
         icon_file = io.open(filename, 'rb')
@@ -119,47 +120,6 @@ function open_dat(dat_stats)
     end
     return icon_file
 end
-
---[[function convert_to_bmp(info)
-    local decrypt = {}
-    for i = 1, 0x800 do
-        local byte = string.byte(info, i)
-        decrypt[i] = string.char((byte % 32) * 8 + math.floor(byte / 32))
-    end
-    info = table.concat(decrypt)
-    decrypt = nil
-    local color_table = string.sub(info, 1, 0x400)
-    color_table = string.gsub(color_table, '(...)\128', '%1\255')
-
-    local chunks = {}
-    local n = 1
-    for i = 1, 256 do
-        local offset = 4 * (i - 1) + 1
-        chunks[n] = string.sub(color_table, offset, offset + 2)
-        n = n + 1
-        local alpha = string.byte(string.sub(color_table, offset + 3, offset + 3))
-        alpha = math.min(alpha * 2, 255)
-        chunks[n] = string.char(alpha)
-        n = n + 1
-    end
-    color_table = table.concat(chunks, '')
-
-    local pixel_bytes = string.sub(info, 0x401, 0x800)
-
-    local n = 0
-    for j = 1, 1024, 4 do
-        color_lookup[string.char(n)] = string.sub(color_table, j, j + 3)
-        n = n + 1
-    end
-
-    for j = 1, 1024 do
-        bmp_segments[j] = color_lookup[string.sub(pixel_bytes, j, j)]
-    end
-
-    local pixel_data = table.concat(bmp_segments, '')
-    local bmp = header .. pixel_data
-    return bmp
-end--]]
 
 -- 32 bit color palette-indexed bitmaps. Bits are rotated and must be decoded.
 local encoded_to_decoded_char = {}
@@ -221,15 +181,18 @@ local buff_by_id = function (id, output_path)
 end
 icon_extractor.buff_by_id = buff_by_id
 
---[[local function index_color_table(index_as_char)
-	return color_lookup[index_as_char]
-end--]]
+
+local ffxi_path = function(location)
+    game_path = location
+end
+icon_extractor.ffxi_path = ffxi_path
+
 
 -- A mix of 32 bit color uncompressed and *color palette-indexed bitmaps
 -- Offsets defined specifically for status icons
 -- * some maps use this format as well, but at 512 x 512
 function convert_buff_icon_to_bmp(data)
-    local length = byte(data, 0x282) -- The length is technically sub(0x281, 0x284), but only 0x282 is unique
+	local length = byte(data, 0x282) -- The length is technically sub(0x281, 0x284), but only 0x282 is unique
 
     if length == 16 then -- uncompressed
         data = sub(data, 0x2BE, 0x12BD)
@@ -249,8 +212,20 @@ function convert_buff_icon_to_bmp(data)
         data = sub(data, 0x2BE, 0x12BD)
     end
     
-    return header .. data
+	return header .. data
 end
 
+windower.register_event('unload', function()
+    for _,dat in pairs(item_dat_map) do
+        if dat and dat.file then
+            dat.file:close()
+        end
+    end
+    for _,dat in pairs(buff_dat_map) do
+        if dat and dat.file then
+            dat.file:close()
+        end
+    end
+end);
 
 return icon_extractor
