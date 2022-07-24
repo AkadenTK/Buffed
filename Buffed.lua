@@ -427,7 +427,7 @@ windower.register_event('prerender', function()
             local w, h = group.size * cols + (4 * (cols - 1)) + 8, group.size * rows + (4 * (rows - 1)) + 12
             local x, y = group.pos.x - 4, group.pos.y - 4
             if group.direction == 'right-to-left' then
-                x = x - w
+                x = x - w + 8
             end
             if not state.backgrounds[group.name] then
                 --print(x..', '..y)
@@ -444,7 +444,7 @@ windower.register_event('prerender', function()
             x, y = state.backgrounds[group.name]:pos()
             group.pos.x, group.pos.y = x + 4, y + 4
             if group.direction == 'right-to-left' then
-                group.pos.x = group.pos.x + w
+                group.pos.x = group.pos.x + w - 8
             end
 
             if state.demo then 
