@@ -101,6 +101,7 @@ return {
         stack_blacklist = T{'March', 'Minuet', 'Madrigal', 'Prelude', },
         statuses = T{
             'Aftermath: Lv.1', 'Aftermath: Lv.2', 'Aftermath: Lv.3',
+            'Aftermath', 'Afterglow',
             'Haste', 'Attack Boost', 'Magic Atk. Boost', 'Multi Strikes', 'Flurry', 'Accuracy Boost', 'Magic Acc. Boost',
             'Regain', 'Store TP',
             'March', 'Minuet', 'Madrigal', 'Prelude',
