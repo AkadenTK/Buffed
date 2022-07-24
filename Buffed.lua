@@ -30,7 +30,7 @@ local demo_format = {
 }
 
 -- avatar favors, geomancy 
---local always_aura_statuses = S{422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 580}
+local always_aura_statuses = S{422, 423, 424, 425, 426, 427, 428, 429, 430, 431, 539, 540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 580}
 -- debuffs that restrict movement and/or turning, buffs that change behaviors of spells or enable spells in the menu MUST fall through.
 local forced_fall_through_statuses = S{0, 2, 7, 10, 11, 19, 284, 358, 359, 377, 401, 402, 409, 485, 505}
 
@@ -276,7 +276,8 @@ local filter_buffs = function(read_statuses, apply)
                             end
 
                             local new_s = { id = s.id, map = map, endtime = s.endtime}
-                            if (old_statuses[s.id] and old_statuses[s.id].aura) or (not old_statuses[s.id] and s.endtime - os.time() <= 5) then
+                            -- if (old_statuses[s.id] and old_statuses[s.id].aura) or (not old_statuses[s.id] and s.endtime - os.time() <= 5) then
+                            if always_aura_statuses:contains(s.id) then
                                 new_s.aura = true
                             end
                             state.groups[group.name].statuses:append(new_s)
@@ -403,7 +404,7 @@ local get_stacked_statuses = function(group, statuses)
                 stacked[index_map[s.id]].count = counters[s.id]
                 stacked[index_map[s.id]].endtime = math.min(s.endtime, stacked[index_map[s.id]].endtime)
             else
-                stacked:append({id = s.id, endtime = s.endtime, count = 1})
+                stacked:append({id = s.id, endtime = s.endtime, count = 1, aura = s.aura})
                 index_map[s.id] = #stacked
             end
         end
@@ -482,6 +483,7 @@ windower.register_event('prerender', function()
                 if group.direction == 'right-to-left' then
                     x = x - group.size
                 end
+                local col1 = x
                 if not stacked_statuses then 
                     stacked_statuses = get_stacked_statuses(group, g.statuses)
                 end
@@ -564,7 +566,7 @@ windower.register_event('prerender', function()
 
                     if i % group.columns == 0 then
                         y = y + group.size + 4
-                        x = group.pos.x
+                        x = col1
                     else
                         if group.direction == 'left-to-right' then
                             x = x + group.size + 4
