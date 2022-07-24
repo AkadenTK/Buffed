@@ -1,5 +1,5 @@
 _addon.name = 'Buffed'
-_addon.version = '0.8'
+_addon.version = '0.8.1'
 _addon.author = 'Akaden'
 _addon.commands = { 'buffed', 'bf' }
 
