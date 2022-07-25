@@ -227,6 +227,9 @@ local sort_statuses = function(group)
         end
     elseif order == 'endtime' then
         fn = function(i)
+            if i.aura then
+                return 99999999999999999999
+            end
             return i.endtime
         end
     elseif order == 'byid' then
