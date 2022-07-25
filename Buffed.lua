@@ -438,6 +438,9 @@ windower.register_event('prerender', function()
                 state.backgrounds[group.name]:alpha(128)
                 state.backgrounds[group.name]:repeat_xy(100, 100)
             end 
+            if not state.demo then
+                state.backgrounds[group.name]:pos(x, y)
+            end
             state.backgrounds[group.name]:size(w, h)
             state.backgrounds[group.name]:show()
 
