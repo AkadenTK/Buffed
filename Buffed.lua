@@ -140,7 +140,10 @@ local get_group_statuses = function(group)
         return status_map[group.name].statuses
     elseif status_map[group.name].statuses_by_job then
         local player = windower.ffxi.get_player()
-        local job_string = player.main_job:lower()..'_'..player.sub_job:lower()
+        local job_string = player.main_job:lower()
+        if player.sub_job ~= nil then
+            job_string = job_string..'_'..player.sub_job:lower()
+        end
         if status_map[group.name].statuses_by_job[job_string] then
             return status_map[group.name].statuses_by_job[job_string]
         end
